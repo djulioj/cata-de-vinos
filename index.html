@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cata en vivo · Rojo Madrid</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --wine: #6B1A2A;
+    --wine-dark: #3D0E18;
+    --wine-light: #C4566A;
+    --gold: #C9A84C;
+    --gold-light: #E8D5A3;
+    --cream: #FAF6EF;
+    --cream-dark: #F0E8DA;
+    --ink: #1A1410;
+    --ink-soft: #4A3728;
+    --muted: #8A7060;
+    --border: rgba(107,26,42,0.15);
+    --radius: 12px;
+    --radius-lg: 20px;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+  }
+
+  body {
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(107,26,42,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(201,168,76,0.06) 0%, transparent 50%);
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .app-header {
+    text-align: center;
+    padding: 2.5rem 0 1.5rem;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .app-header .eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+  .app-header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--wine-dark);
+    letter-spacing: 0.02em;
+  }
+  .app-header .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 16px rgba(107,26,42,0.05);
+  }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--wine-dark);
+    margin-bottom: 0.5rem;
+  }
+  .card-subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  /* WINE NUMBER DISPLAY */
+  .wine-display {
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+  .wine-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    font-weight: 300;
+    color: var(--wine);
+    line-height: 1;
+  }
+  .wine-num-label {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: white;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:hover { background: var(--cream); border-color: rgba(107,26,42,0.3); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--wine);
+    color: var(--gold-light);
+    border-color: var(--wine);
+  }
+  .btn-primary:hover { background: var(--wine-dark); border-color: var(--wine-dark); }
+  .btn-sm {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row .btn { flex: 1; }
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    flex: 0 0 44px;
+    font-size: 18px;
+  }
+
+  /* INPUTS */
+  label.field-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 1rem;
+  }
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--wine-light);
+    background: white;
+  }
+  textarea { min-height: 110px; resize: vertical; line-height: 1.6; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+  .badge-host { background: #FFF3E0; color: #8B5000; border: 0.5px solid #E0A040; }
+  .badge-guest { background: #EFF7F0; color: #2A6B35; border: 0.5px solid #7CC48A; }
+  .badge-wine { background: #FDF0F2; color: var(--wine); border: 0.5px solid var(--wine-light); }
+
+  /* STATUS DOT */
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot-active { background: #3BB554; }
+  .dot-waiting { background: #B0A090; }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--cream-dark);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 1rem;
+  }
+
+  /* METRICS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .metric {
+    background: white;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 1px 8px rgba(107,26,42,0.04);
+  }
+  .metric-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--wine);
+    line-height: 1;
+  }
+  .metric-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 1.25rem; }
+  .tab {
+    flex: 1;
+    padding: 9px;
+    text-align: center;
+    font-size: 13px;
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    background: white;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab.active { background: var(--wine); color: var(--gold-light); border-color: var(--wine); }
+
+  /* RESPONSE BOX */
+  .response-box {
+    background: linear-gradient(135deg, #FDF8F0 0%, #FDF0F2 100%);
+    border: 0.5px solid rgba(201,168,76,0.4);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-top: 1rem;
+    position: relative;
+  }
+  .response-box::before {
+    content: '"';
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    color: var(--gold-light);
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    line-height: 1;
+  }
+  .response-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .response-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--wine-dark);
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ENTRY */
+  .entry {
+    padding: 1rem 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .entry:last-child { border-bottom: none; }
+  .entry-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .entry-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .entry-desc { font-size: 13px; color: var(--muted); font-style: italic; margin: 4px 0; }
+  .entry-response-mini {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    font-style: italic;
+    color: var(--wine-dark);
+    line-height: 1.5;
+    background: #FDF8F0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 6px;
+    border-left: 2px solid var(--gold);
+  }
+
+  /* SPINNER */
+  .spinner {
+    width: 12px; height: 12px;
+    border: 1.5px solid var(--gold-light);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+    vertical-align: -1px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* REVEAL */
+  .reveal-header {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
+  }
+  .reveal-header .big-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 80px;
+    font-weight: 300;
+    color: var(--wine);
+    line-height: 1;
+  }
+
+  /* WAITING ANIMATION */
+  .waiting-pulse {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: rgba(107,26,42,0.08);
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+
+  /* LANDING CHOICE */
+  .role-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 1.5rem; }
+  .role-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .role-card:hover { border-color: var(--wine-light); background: #FDF8F8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(107,26,42,0.08); }
+  .role-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .role-icon-host { background: #FFF3E0; }
+  .role-icon-guest { background: #FDF0F2; }
+  .role-info h3 { font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+  .role-info p { font-size: 13px; color: var(--muted); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    transition: transform 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-2 { margin-top: 1rem; }
+  .mb-0 { margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="eyebrow">Rojo Madrid · Jueves 7PM</div>
+    <h1>Cata en vivo</h1>
+    <div class="subtitle">Una experiencia automatizada</div>
+  </div>
+
+  <!-- LANDING -->
+  <div id="screen-landing" class="screen active">
+    <div class="card">
+      <div class="card-title">Bienvenido</div>
+      <div class="card-subtitle">¿Cuál es tu rol esta noche?</div>
+      <div class="role-cards">
+        <div class="role-card" onclick="goTo('screen-host')">
+          <div class="role-icon role-icon-host">🎛️</div>
+          <div class="role-info">
+            <h3>Anfitrión</h3>
+            <p>Controlar la cata y ver respuestas</p>
+          </div>
+        </div>
+        <div class="role-card" onclick="goTo('screen-guest-register')">
+          <div class="role-icon role-icon-guest">🍷</div>
+          <div class="role-info">
+            <h3>Asistente</h3>
+            <p>Participar y recibir mi ficha de catador</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOST PANEL -->
+  <div id="screen-host" class="screen">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span class="badge badge-host">🎛️ Anfitrión</span>
+      <button class="btn btn-sm" onclick="goTo('screen-landing')">Salir</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="tab-ctrl" onclick="switchTab('ctrl')">Control</div>
+      <div class="tab" id="tab-resp" onclick="switchTab('resp')">Respuestas</div>
+      <div class="tab" id="tab-reveal" onclick="switchTab('reveal')">Revelación</div>
+    </div>
+
+    <!-- Tab: Control -->
+    <div id="panel-ctrl">
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="m-guests">0</div><div class="metric-label">Asistentes</div></div>
+        <div class="metric"><div class="metric-val" id="m-wine">—</div><div class="metric-label">Vino activo</div></div>
+        <div class="metric"><div class="metric-val" id="m-resp">0</div><div class="metric-label">Fichas</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:0.25rem;">Control de vinos</div>
+        <div class="card-subtitle">Activá cada vino cuando sea el momento.</div>
+        <div class="status-bar" id="host-status-bar">
+          <span class="dot dot-waiting"></span>
+          <span>Ningún vino activo aún</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-icon" onclick="prevWine()" id="btn-prev" disabled>←</button>
+          <button class="btn btn-primary" onclick="nextWine()" id="btn-next">Activar vino 1</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Respuestas -->
+    <div id="panel-resp" style="display:none;">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem;">Respuestas en tiempo real</div>
+        <div id="host-responses-list">
+          <p style="font-size:14px;color:var(--muted);">Las respuestas aparecerán aquí a medida que lleguen.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Revelación -->
+    <div id="panel-reveal" style="display:none;">
+      <div class="card" style="text-align:center;">
+        <div class="eyebrow" style="color:var(--gold);letter-spacing:0.15em;margin-bottom:0.5rem;">Lo que pasó esta noche</div>
+        <div class="card-title" style="font-size:26px;margin-bottom:0.25rem;">Automatización en acción</div>
+        <div class="card-subtitle mb-0">Todo esto ocurrió mientras disfrutaban la cata.</div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="r-guests">0</div><div class="metric-label">Asistentes</div></div>
+        <div class="metric"><div class="metric-val" id="r-wines">0</div><div class="metric-label">Vinos</div></div>
+        <div class="metric"><div class="metric-val" id="r-fichas">0</div><div class="metric-label">Fichas IA</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem;">Fichas generadas esta noche</div>
+        <div id="reveal-list">
+          <p style="font-size:14px;color:var(--muted);">Aún no hay respuestas registradas.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUEST REGISTER -->
+  <div id="screen-guest-register" class="screen">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span class="badge badge-guest">🍷 Asistente</span>
+      <button class="btn btn-sm" onclick="goTo('screen-landing')">Atrás</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Bienvenido a la cata</div>
+      <div class="card-subtitle">Ingresá tu nombre para comenzar. El anfitrión activará cada vino cuando sea el momento.</div>
+      <label class="field-label">Tu nombre</label>
+      <input type="text" id="guest-name-input" placeholder="Ej: Juan García" />
+      <button class="btn btn-primary" onclick="registerGuest()">Unirme a la cata →</button>
+    </div>
+  </div>
+
+  <!-- GUEST WAITING -->
+  <div id="screen-guest-waiting" class="screen">
+    <div class="card" style="text-align:center;padding:2.5rem 1.75rem;">
+      <div class="waiting-pulse">🍷</div>
+      <div class="card-title">Esperando el siguiente vino</div>
+      <div class="card-subtitle">El anfitrión activará el próximo vino. Apareará aquí automáticamente.</div>
+      <hr>
+      <div style="font-size:13px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;">
+        <span class="dot dot-active"></span>
+        Conectado como <strong id="guest-name-display" style="color:var(--ink);"></strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUEST FORM -->
+  <div id="screen-guest-form" class="screen">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <span class="badge badge-wine" id="guest-wine-badge">Vino 1</span>
+        <span style="font-size:13px;color:var(--muted);" id="guest-name-form-display"></span>
+      </div>
+      <div class="card-title">¿Qué sentís al probarlo?</div>
+      <div class="card-subtitle">Describilo con tus propias palabras — no hay respuestas incorrectas.</div>
+      <label class="field-label">Tu descripción</label>
+      <textarea id="guest-description" placeholder="Ej: Me recuerda a frutas rojas, es suave pero tiene algo intenso al final..."></textarea>
+      <button class="btn btn-primary" onclick="submitDescription()" id="btn-submit">Enviar mi descripción →</button>
+    </div>
+  </div>
+
+  <!-- GUEST RESPONSE -->
+  <div id="screen-guest-response" class="screen">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+        <span class="badge badge-wine" id="response-wine-badge">Vino 1</span>
+        <span style="font-size:13px;color:var(--muted);" id="response-name-display"></span>
+      </div>
+      <div class="card-title">Tu ficha de catador</div>
+      <div class="response-box">
+        <div class="response-label">
+          <span class="spinner" id="resp-spinner"></span>
+          <span id="resp-label-text">Generando tu ficha...</span>
+        </div>
+        <div class="response-text" id="claude-text"></div>
+      </div>
+      <div id="next-wine-notice" style="display:none;margin-top:1.25rem;text-align:center;">
+        <div class="status-bar" style="justify-content:center;">
+          <span class="dot dot-waiting"></span>
+          <span>El anfitrión activará el siguiente vino</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBg1vWNwtLXbXHxpSUecCs0yCRdhlG1lhY",
+    authDomain: "cata-vinos-e3c60.firebaseapp.com",
+    projectId: "cata-vinos-e3c60",
+    storageBucket: "cata-vinos-e3c60.firebasestorage.app",
+    messagingSenderId: "784884806257",
+    appId: "1:784884806257:web:d956063f95ff1b9d36e1d0",
+    measurementId: "G-Q5T2TR0373"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ─── STATE ───────────────────────────────────────────
+  let guestName = '';
+  let guestCurrentWine = 0;
+  let localWine = 0;
+  let currentTab = 'ctrl';
+  let unsubscribeSession = null;
+
+  // ─── NAVIGATION ──────────────────────────────────────
+  window.goTo = function(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  window.switchTab = function(tab) {
+    currentTab = tab;
+    ['ctrl','resp','reveal'].forEach(t => {
+      document.getElementById(`tab-${t}`).className = 'tab' + (t === tab ? ' active' : '');
+      document.getElementById(`panel-${t}`).style.display = t === tab ? 'block' : 'none';
+    });
+    if (tab === 'resp') renderHostResponses();
+    if (tab === 'reveal') renderReveal();
+  }
+
+  // ─── TOAST ───────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ─── HOST: wine control ───────────────────────────────
+  window.nextWine = async function() {
+    const ref = doc(db, 'session', 'state');
+    const snap = await getDoc(ref);
+    const cur = snap.exists() ? (snap.data().currentWine || 0) : 0;
+    const next = cur + 1;
+    await setDoc(ref, { currentWine: next }, { merge: true });
+    showToast(`Vino ${next} activado`);
+  }
+
+  window.prevWine = async function() {
+    const ref = doc(db, 'session', 'state');
+    const snap = await getDoc(ref);
+    const cur = snap.exists() ? (snap.data().currentWine || 0) : 0;
+    if (cur <= 1) return;
+    await setDoc(ref, { currentWine: cur - 1 }, { merge: true });
+  }
+
+  // ─── HOST: listen to state ────────────────────────────
+  function startHostListener() {
+    onSnapshot(doc(db, 'session', 'state'), async (snap) => {
+      const wine = snap.exists() ? (snap.data().currentWine || 0) : 0;
+      localWine = wine;
+      document.getElementById('m-wine').textContent = wine || '—';
+      document.getElementById('btn-prev').disabled = wine <= 1;
+      document.getElementById('btn-next').textContent = wine === 0 ? 'Activar vino 1' : `Pasar al vino ${wine + 1}`;
+      const bar = document.getElementById('host-status-bar');
+      bar.innerHTML = wine > 0
+        ? `<span class="dot dot-active"></span><span>Vino ${wine} activo — asistentes pueden responder</span>`
+        : `<span class="dot dot-waiting"></span><span>Ningún vino activo aún</span>`;
+    });
+
+    onSnapshot(collection(db, 'guests'), (snap) => {
+      document.getElementById('m-guests').textContent = snap.size;
+      document.getElementById('r-guests').textContent = snap.size;
+    });
+
+    onSnapshot(collection(db, 'responses'), (snap) => {
+      document.getElementById('m-resp').textContent = snap.size;
+      document.getElementById('r-fichas').textContent = snap.size;
+      if (currentTab === 'resp') renderHostResponses();
+      if (currentTab === 'reveal') renderReveal();
+    });
+  }
+
+  async function renderHostResponses() {
+    const snap = await getDocs(collection(db, 'responses'));
+    const el = document.getElementById('host-responses-list');
+    if (snap.empty) { el.innerHTML = '<p style="font-size:14px;color:var(--muted);">Aún no hay respuestas.</p>'; return; }
+    const docs = [];
+    snap.forEach(d => docs.push(d.data()));
+    docs.sort((a,b) => (b.ts||0) - (a.ts||0));
+    el.innerHTML = docs.map(r => `
+      <div class="entry">
+        <div class="entry-meta">
+          <span class="entry-name">${r.name}</span>
+          <span class="badge badge-wine" style="font-size:10px;">Vino ${r.wine}</span>
+        </div>
+        <div class="entry-desc">"${r.description}"</div>
+        ${r.claudeResponse ? `<div class="entry-response-mini">${r.claudeResponse}</div>` : '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Generando ficha...</div>'}
+      </div>
+    `).join('');
+  }
+
+  async function renderReveal() {
+    const rSnap = await getDocs(collection(db, 'responses'));
+    const docs = [];
+    rSnap.forEach(d => docs.push(d.data()));
+    document.getElementById('r-fichas').textContent = docs.filter(d => d.claudeResponse).length;
+    document.getElementById('r-wines').textContent = localWine || '—';
+    const el = document.getElementById('reveal-list');
+    if (docs.length === 0) { el.innerHTML = '<p style="font-size:14px;color:var(--muted);">Aún no hay respuestas.</p>'; return; }
+    docs.sort((a,b) => (a.wine||0) - (b.wine||0));
+    el.innerHTML = docs.map(r => `
+      <div class="entry">
+        <div class="entry-meta">
+          <span class="entry-name">${r.name}</span>
+          <span class="badge badge-wine" style="font-size:10px;">Vino ${r.wine}</span>
+        </div>
+        <div class="entry-desc">"${r.description}"</div>
+        ${r.claudeResponse ? `<div class="entry-response-mini">${r.claudeResponse}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // ─── GUEST: register ──────────────────────────────────
+  window.registerGuest = async function() {
+    const name = document.getElementById('guest-name-input').value.trim();
+    if (!name) { showToast('Por favor ingresá tu nombre'); return; }
+    guestName = name;
+    document.getElementById('guest-name-display').textContent = name;
+    document.getElementById('guest-name-form-display').textContent = name;
+    document.getElementById('response-name-display').textContent = name;
+    await setDoc(doc(db, 'guests', name), { name, joinedAt: Date.now() });
+    startGuestListener();
+    goTo('screen-guest-waiting');
+  }
+
+  function startGuestListener() {
+    if (unsubscribeSession) unsubscribeSession();
+    unsubscribeSession = onSnapshot(doc(db, 'session', 'state'), (snap) => {
+      const wine = snap.exists() ? (snap.data().currentWine || 0) : 0;
+      if (wine > guestCurrentWine) {
+        guestCurrentWine = wine;
+        document.getElementById('guest-wine-badge').textContent = `Vino ${wine}`;
+        document.getElementById('response-wine-badge').textContent = `Vino ${wine}`;
+        document.getElementById('guest-description').value = '';
+        document.getElementById('btn-submit').disabled = false;
+        document.getElementById('btn-submit').textContent = 'Enviar mi descripción →';
+        goTo('screen-guest-form');
+      }
+    });
+  }
+
+  // ─── GUEST: submit ────────────────────────────────────
+  window.submitDescription = async function() {
+    const desc = document.getElementById('guest-description').value.trim();
+    if (!desc) { showToast('Por favor describí el vino'); return; }
+    document.getElementById('btn-submit').disabled = true;
+    document.getElementById('btn-submit').textContent = 'Enviando...';
+
+    const docRef = await addDoc(collection(db, 'responses'), {
+      name: guestName,
+      wine: guestCurrentWine,
+      description: desc,
+      claudeResponse: null,
+      ts: Date.now()
+    });
+
+    goTo('screen-guest-response');
+    document.getElementById('claude-text').textContent = '';
+    document.getElementById('resp-spinner').style.display = 'inline-block';
+    document.getElementById('resp-label-text').textContent = 'Generando tu ficha...';
+    document.getElementById('next-wine-notice').style.display = 'none';
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          messages: [{
+            role: 'user',
+            content: `Eres un sommelier experto y carismático en una cata de vinos en Rojo Madrid. Un asistente llamado ${guestName} acaba de probar el vino número ${guestCurrentWine} y lo describió así: "${desc}".
+
+Generá una ficha de catador personalizada y elegante para ${guestName} basada en su descripción. La ficha debe:
+- Tener un tono sofisticado pero cálido y accesible, nunca pedante
+- Validar e interpretar su descripción usando vocabulario de sommelier de forma natural
+- Identificar su "perfil de paladar" de forma halagadora y memorable
+- Ser de 3-4 oraciones máximo, fluidas y bien escritas
+- Terminar con una predicción encantadora sobre qué tipo de vino le gustaría más
+
+Respondé solo con la ficha en español, sin títulos, sin comillas, sin encabezados.`
+          }]
+        })
+      });
+      const data = await res.json();
+      const text = data.content?.find(b => b.type === 'text')?.text || 'No se pudo generar la ficha.';
+
+      await setDoc(docRef, { claudeResponse: text }, { merge: true });
+
+      document.getElementById('claude-text').textContent = text;
+      document.getElementById('resp-spinner').style.display = 'none';
+      document.getElementById('resp-label-text').textContent = 'Tu ficha de catador';
+      document.getElementById('next-wine-notice').style.display = 'block';
+
+    } catch(e) {
+      document.getElementById('claude-text').textContent = 'Hubo un error. Por favor intentá de nuevo.';
+      document.getElementById('resp-spinner').style.display = 'none';
+      document.getElementById('btn-submit').disabled = false;
+      document.getElementById('btn-submit').textContent = 'Enviar mi descripción →';
+      goTo('screen-guest-form');
+    }
+  }
+
+  // ─── INIT HOST LISTENER ON LOAD ──────────────────────
+  startHostListener();
+</script>
+</body>
+</html>
