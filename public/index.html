@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cata en vivo · Rojo Madrid</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="eyebrow">Rojo Madrid · Jueves 7PM</div>
+    <h1>Cata en vivo</h1>
+    <div class="subtitle">Una experiencia con IA</div>
+  </div>
+
+  <!-- ──────────────── PANTALLA DE UNIÓN (asistentes sin ?host) ──────────────── -->
+  <div id="screen-join" class="screen active">
+
+    <!-- Paso 1: unirse al sandbox (solo si está configurado) -->
+    <div id="join-step1" style="display:none;" class="card" style="text-align:center;">
+      <div class="eyebrow" style="margin-bottom:0.5rem;">Paso 1 · Solo la primera vez</div>
+      <div class="card-title" style="margin-bottom:0.5rem;">Activa el chat</div>
+      <div class="card-subtitle">Escanea este QR o toca el botón para enviar el código de activación a WhatsApp.</div>
+      <img id="join-qr1" src="" alt="QR activación" style="width:160px;height:160px;margin:0.75rem auto;display:block;border-radius:12px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;">
+        Mensaje: <strong id="join-word" style="color:var(--ink);"></strong>
+      </div>
+      <a id="join-link1" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none;margin-bottom:0;">
+        Activar en WhatsApp →
+      </a>
+    </div>
+
+    <!-- Paso 2: unirse a la cata -->
+    <div class="card" style="text-align:center;padding:2.5rem 1.75rem;">
+      <div id="join-step-label" class="eyebrow" style="margin-bottom:0.75rem;">Únete a la cata</div>
+      <div class="card-title" style="margin-bottom:0.5rem;">Por WhatsApp</div>
+      <div class="card-subtitle">Escanea el QR con tu celular o toca el botón para abrir el chat.</div>
+
+      <div id="join-loading" style="padding:2rem 0;color:var(--muted);font-size:14px;">
+        <span class="spinner" style="border-color:var(--border);border-top-color:var(--gold);width:20px;height:20px;"></span>
+      </div>
+
+      <img id="wa-qr" src="" alt="QR WhatsApp" style="display:none;width:200px;height:200px;margin:0 auto 1.25rem;border-radius:12px;">
+
+      <a id="wa-link" href="#" target="_blank" class="btn btn-primary" style="display:none;text-decoration:none;margin-bottom:0;">
+        🍷 Abrir WhatsApp
+      </a>
+    </div>
+
+  </div>
+
+  <!-- ──────────────── PANEL ANFITRIÓN ──────────────── -->
+  <div id="screen-host" class="screen">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <span class="badge badge-host">🎛️ Anfitrión</span>
+      <button class="btn btn-sm" onclick="window.location.href='/'">Salir</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-ctrl"   onclick="switchTab('ctrl')">Control</div>
+      <div class="tab"        id="tab-resp"   onclick="switchTab('resp')">Respuestas</div>
+      <div class="tab"        id="tab-reveal" onclick="switchTab('reveal')">Revelación</div>
+    </div>
+
+    <!-- ── Tab: Control ── -->
+    <div id="panel-ctrl">
+
+      <!-- QR para asistentes -->
+      <div class="card" style="text-align:center;">
+        <div class="eyebrow" style="margin-bottom:0.5rem;">QR para asistentes</div>
+        <div class="card-subtitle" style="margin-bottom:1rem;">Muestra este código para que los invitados se unan por WhatsApp.</div>
+        <img id="host-wa-qr" src="" alt="QR asistentes" style="width:180px;height:180px;margin:0 auto 1rem;display:block;border-radius:12px;background:var(--cream-dark);">
+        <a id="host-wa-link" href="#" target="_blank" style="font-size:12px;color:var(--muted);word-break:break-all;display:block;margin-bottom:0.25rem;"></a>
+      </div>
+
+      <!-- Métricas -->
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-val" id="m-guests">0</div>
+          <div class="metric-label">Conectados</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="m-wine">—</div>
+          <div class="metric-label">Vino activo</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="m-resp">0</div>
+          <div class="metric-label">Fichas</div>
+        </div>
+      </div>
+
+      <!-- Control de vinos -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:0.25rem;">Control de vinos</div>
+        <div class="card-subtitle">Activa cada vino cuando sea el momento. Se envía un mensaje por WhatsApp a todos los asistentes.</div>
+        <div class="status-bar" id="host-status-bar">
+          <span class="dot dot-waiting"></span>
+          <span>Ningún vino activo aún</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-icon" onclick="prevWine()" id="btn-prev" disabled>←</button>
+          <button class="btn btn-primary" onclick="nextWine()" id="btn-next">Activar vino 1</button>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <button class="btn" onclick="resetCata()" style="font-size:13px;color:var(--muted);">↺ Nueva cata (resetear vinos)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Respuestas ── -->
+    <div id="panel-resp" style="display:none;">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem;">Respuestas en tiempo real</div>
+        <div id="host-responses-list">
+          <p style="font-size:14px;color:var(--muted);">Las respuestas aparecerán aquí a medida que lleguen por WhatsApp.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Revelación ── -->
+    <div id="panel-reveal" style="display:none;">
+      <div class="card text-center">
+        <div class="eyebrow" style="margin-bottom:0.5rem;">Lo que pasó esta noche</div>
+        <div class="card-title" style="font-size:26px;margin-bottom:0.25rem;">Automatización en acción</div>
+        <div class="card-subtitle mb-0">Todo esto ocurrió mientras disfrutaban la cata.</div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-val" id="r-guests">0</div>
+          <div class="metric-label">Asistentes</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="r-wines">—</div>
+          <div class="metric-label">Vinos</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="r-fichas">0</div>
+          <div class="metric-label">Fichas IA</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:1rem;">Fichas generadas esta noche</div>
+        <div id="reveal-list">
+          <p style="font-size:14px;color:var(--muted);">Aún no hay respuestas registradas.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#screen-host -->
+
+</div><!-- /.app -->
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
