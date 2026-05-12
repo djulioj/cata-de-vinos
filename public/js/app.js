@@ -13,66 +13,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (isHost) {
     goTo('screen-host');
     startHostListeners();
-    loadHostQR();
   } else {
     goTo('screen-join');
-    loadJoinScreen();
   }
 });
-
-// ─── PANTALLA DE UNIÓN ────────────────────────────────────────────────────────
-async function loadJoinScreen() {
-  try {
-    const { waNumber, joinWord } = await fetch('/api/config').then((r) => r.json());
-
-    if (!waNumber) return;
-
-    const chatMsg = 'Hola, quiero participar en la cata 🍷';
-    const chatLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(chatMsg)}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(chatLink)}`;
-
-    // Mostrar QR y botón
-    const qrImg = document.getElementById('wa-qr');
-    const waBtn = document.getElementById('wa-link');
-    qrImg.src = qrUrl;
-    qrImg.style.display = 'block';
-    waBtn.href = chatLink;
-    waBtn.style.display = 'flex';
-    document.getElementById('join-loading').style.display = 'none';
-
-    // Paso 1 (sandbox join) — solo si está configurado
-    if (joinWord) {
-      const joinLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(joinWord)}`;
-      document.getElementById('join-step1').style.display = 'block';
-      document.getElementById('join-step-label').textContent = 'Paso 2 · Únete a la cata';
-      document.getElementById('join-qr1').src =
-        `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(joinLink)}`;
-      document.getElementById('join-word').textContent = joinWord;
-      document.getElementById('join-link1').href = joinLink;
-    }
-  } catch (e) {
-    console.error('Error cargando join screen:', e);
-    document.getElementById('join-loading').textContent = 'Error cargando el QR. Recarga la página.';
-  }
-}
-
-// ─── HOST: QR EN EL PANEL ─────────────────────────────────────────────────────
-async function loadHostQR() {
-  try {
-    const { waNumber, joinWord } = await fetch('/api/config').then((r) => r.json());
-    if (!waNumber) return;
-
-    const msg = joinWord || 'Hola, quiero participar en la cata 🍷';
-    const link = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`;
-
-    document.getElementById('host-wa-qr').src = qrUrl;
-    document.getElementById('host-wa-link').textContent = link;
-    document.getElementById('host-wa-link').href = link;
-  } catch (e) {
-    console.error('Error cargando QR del anfitrión:', e);
-  }
-}
 
 // ─── HOST: TABS ───────────────────────────────────────────────────────────────
 window.switchTab = function (tab) {
