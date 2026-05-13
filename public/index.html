@@ -120,8 +120,13 @@
           <button class="btn btn-icon" onclick="prevWine()" id="btn-prev" disabled>←</button>
           <button class="btn btn-primary" onclick="nextWine()" id="btn-next">Activar vino 1</button>
         </div>
-        <div style="margin-top:0.75rem;">
-          <button class="btn" onclick="resetCata()" style="font-size:13px;color:var(--muted);">↺ Nueva cata (resetear vinos)</button>
+        <div style="margin-top:0.75rem;display:flex;flex-direction:column;gap:8px;">
+          <button class="btn" onclick="finalizarCata()" style="font-size:13px;background:#EFF7F0;color:#2A6B35;border-color:#7CC48A;">
+            ✓ Finalizar cata (enviar mensaje de cierre)
+          </button>
+          <button class="btn" onclick="resetCata()" style="font-size:13px;color:var(--muted);">
+            ↺ Nueva cata (resetear para pruebas)
+          </button>
         </div>
       </div>
     </div>

@@ -73,6 +73,26 @@ window.prevWine = async function () {
   }
 };
 
+window.finalizarCata = async function () {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Enviando mensajes de cierre...';
+  try {
+    const r = await fetch('/api/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'finalize' }),
+    });
+    const d = await r.json();
+    showToast(`¡Cata finalizada! Mensaje enviado a ${d.sent} personas 🥂`);
+  } catch (e) {
+    showToast('Error al enviar el mensaje de cierre');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✓ Finalizar cata (enviar mensaje de cierre)';
+  }
+};
+
 window.resetCata = async function () {
   try {
     await fetch('/api/activate', {
