@@ -71,9 +71,20 @@ module.exports = async function handler(req, res) {
     const isPositive = ['gracias', 'rico', 'bueno', 'genial', 'ok', 'listo',
       'perfecto', 'excelente', 'bien', 'chévere', 'súper', '👍', '🙌', '😊'].some(w => msg.includes(w));
 
-    const reply = isPositive
-      ? `¡Con gusto, ${guest.name}! 😊 Cuando el anfitrión active el siguiente vino te llega el aviso aquí. ¡Disfruta! 🍷`
-      : `¡Aquí estoy, ${guest.name}! 🍷 En cuanto el anfitrión active el siguiente vino, te aviso directo aquí. ¡No te muevas!`;
+    // Revisar si la cata terminó (vino activo = 0) o sigue en curso
+    const session = await fsGet('session/state');
+    const wineActive = session?.currentWine || 0;
+
+    let reply;
+    if (isPositive && wineActive === 0) {
+      reply = `¡Gracias a ti, ${guest.name}! 🥂 Fue un placer tenerte en la cata.`;
+    } else if (isPositive) {
+      reply = `¡Con gusto, ${guest.name}! 😊 Te aviso cuando llegue el siguiente vino. 🍷`;
+    } else if (wineActive === 0) {
+      reply = `¡Hola, ${guest.name}! La cata ya terminó. Espero que lo hayas disfrutado 🍷`;
+    } else {
+      reply = `¡Aquí estoy, ${guest.name}! Te aviso cuando el anfitrión active el siguiente vino. 🍷`;
+    }
 
     return res.end(twiml(reply));
   }
@@ -97,16 +108,13 @@ module.exports = async function handler(req, res) {
 
     // ── Llamar a Claude ANTES de responder a Twilio ───────────────────────
     // (Vercel termina la función al hacer res.end(), así que Claude va primero)
-    const prompt = `Eres un sommelier experto y carismático en una cata de vinos. ${guest.name} acaba de probar el Vino #${wine} y lo describió así: "${desc}".
+    const prompt = `Eres un sommelier experto. ${guest.name} probó el Vino #${wine} y lo describió: "${desc}".
 
-Genera una ficha de catador personalizada y elegante para ${guest.name} basada en su descripción. La ficha debe:
-- Usar tuteo (tú), tono sofisticado pero cálido y accesible, nunca pedante
-- Validar e interpretar su descripción usando vocabulario de sommelier de forma natural
-- Identificar su "perfil de paladar" de forma halagadora y memorable
-- Tener máximo 3-4 oraciones fluidas y bien escritas
-- Terminar con una predicción encantadora sobre qué tipo de vino le encantaría explorar después
+Escríbele exactamente 2 oraciones en español colombiano:
+1. Interpreta su descripción con una palabra de sommelier y dile qué revela eso de su paladar.
+2. Recomiéndale un estilo de vino que le encantaría, con una imagen evocadora.
 
-Responde solo con la ficha en español colombiano, sin títulos, sin comillas, sin encabezados.`;
+Tuteo, cálido, elegante. Sin títulos, sin emojis, sin comillas.`;
 
     try {
       const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -117,7 +125,7 @@ Responde solo con la ficha en español colombiano, sin títulos, sin comillas, s
         },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          max_tokens: 500,
+          max_tokens: 120,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
