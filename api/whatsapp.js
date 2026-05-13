@@ -79,10 +79,7 @@ module.exports = async function handler(req, res) {
     const desc = msgText;
     const wine = guest.currentWine;
 
-    // Responder de inmediato para no dejar al usuario esperando
-    res.end(twiml('Dame un momento mientras preparo tu ficha de catador... ✍️🍷'));
-
-    // Guardar en Firestore
+    // Guardar descripción y marcar como enviado ANTES de llamar a Claude
     const docResult = await fsAdd('responses', {
       name: guest.name,
       phone: from,
@@ -92,13 +89,11 @@ module.exports = async function handler(req, res) {
       ts: Date.now(),
     });
     const docId = docResult.name?.split('/').pop();
-
-    // Marcar como enviado para que no procese mensajes duplicados
     await fsSet(`guests/${key}`, { state: 'submitted' });
 
-    // Llamar a Claude (la función sigue corriendo después de res.end())
-    try {
-      const prompt = `Eres un sommelier experto y carismático en una cata de vinos. ${guest.name} acaba de probar el Vino #${wine} y lo describió así: "${desc}".
+    // ── Llamar a Claude ANTES de responder a Twilio ───────────────────────
+    // (Vercel termina la función al hacer res.end(), así que Claude va primero)
+    const prompt = `Eres un sommelier experto y carismático en una cata de vinos. ${guest.name} acaba de probar el Vino #${wine} y lo describió así: "${desc}".
 
 Genera una ficha de catador personalizada y elegante para ${guest.name} basada en su descripción. La ficha debe:
 - Usar tuteo (tú), tono sofisticado pero cálido y accesible, nunca pedante
@@ -109,6 +104,7 @@ Genera una ficha de catador personalizada y elegante para ${guest.name} basada e
 
 Responde solo con la ficha en español colombiano, sin títulos, sin comillas, sin encabezados.`;
 
+    try {
       const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -117,33 +113,36 @@ Responde solo con la ficha en español colombiano, sin títulos, sin comillas, s
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-3-5-haiku-20241022',
           max_tokens: 500,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
 
       const claudeData = await claudeRes.json();
-      const ficha = claudeData.content?.[0]?.text || 'No se pudo generar la ficha.';
+      console.log('Claude status:', claudeRes.status, JSON.stringify(claudeData).slice(0, 200));
 
-      // Guardar ficha en Firestore
+      const ficha = claudeData.content?.[0]?.text;
+
+      if (!ficha) {
+        // Claude devolvió error — revertir para que pueda reintentar
+        await fsSet(`guests/${key}`, { state: 'describing' });
+        return res.end(twiml('Tuve un problema preparando tu ficha 😔 Escríbeme de nuevo tu descripción.'));
+      }
+
+      // Guardar en Firestore
       if (docId) await fsSet(`responses/${docId}`, { claudeResponse: ficha });
 
-      // Enviar ficha por WhatsApp
-      await sendWhatsApp(
-        from,
-        `🍷 *Tu ficha de catador — Vino ${wine}*\n\n${ficha}\n\n_El anfitrión te avisará cuando llegue el siguiente vino._`
+      // Responder a Twilio con la ficha directamente en el mismo mensaje
+      return res.end(
+        twiml(`🍷 *Tu ficha de catador — Vino ${wine}*\n\n${ficha}\n\n_El anfitrión te avisará cuando llegue el siguiente vino._`)
       );
+
     } catch (e) {
-      console.error('Error generando ficha:', e);
-      await sendWhatsApp(
-        from,
-        'Ups, tuve un problema generando tu ficha 😔 Respóndeme de nuevo con tu descripción y lo intento otra vez.'
-      );
-      // Revertir estado para que pueda reintentar
+      console.error('Error Claude:', e.message);
       await fsSet(`guests/${key}`, { state: 'describing' });
+      return res.end(twiml('Tuve un problema 😔 Escríbeme de nuevo tu descripción y lo intento otra vez.'));
     }
-    return;
   }
 
   // ── Fallback ──────────────────────────────────────────────────────────────
