@@ -105,24 +105,23 @@ Genera una ficha de catador personalizada y elegante para ${guest.name} basada e
 Responde solo con la ficha en español colombiano, sin títulos, sin comillas, sin encabezados.`;
 
     try {
-      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'claude-3-5-haiku-20241022',
+          model: 'llama-3.3-70b-versatile',
           max_tokens: 500,
           messages: [{ role: 'user', content: prompt }],
         }),
       });
 
-      const claudeData = await claudeRes.json();
-      console.log('Claude status:', claudeRes.status, JSON.stringify(claudeData).slice(0, 200));
+      const groqData = await groqRes.json();
+      console.log('Groq status:', groqRes.status, JSON.stringify(groqData).slice(0, 200));
 
-      const ficha = claudeData.content?.[0]?.text;
+      const ficha = groqData.choices?.[0]?.message?.content;
 
       if (!ficha) {
         // Claude devolvió error — revertir para que pueda reintentar
