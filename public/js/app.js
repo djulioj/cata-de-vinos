@@ -74,9 +74,10 @@ window.prevWine = async function () {
 };
 
 window.finalizarCata = async function () {
-  const btn = event.target;
+  const btn = document.getElementById('btn-finalize');
+  if (!btn) return;
   btn.disabled = true;
-  btn.textContent = 'Enviando mensajes de cierre...';
+  btn.textContent = 'Generando perfiles con IA... puede tomar ~30 seg';
   try {
     const r = await fetch('/api/activate', {
       method: 'POST',
@@ -84,12 +85,12 @@ window.finalizarCata = async function () {
       body: JSON.stringify({ action: 'finalize' }),
     });
     const d = await r.json();
-    showToast(`¡Cata finalizada! Mensaje enviado a ${d.sent} personas 🥂`);
+    showToast(`¡Cata cerrada! Perfil enviado a ${d.sent} persona${d.sent !== 1 ? 's' : ''} 🥂`);
+    btn.textContent = '✓ Perfiles enviados';
   } catch (e) {
-    showToast('Error al enviar el mensaje de cierre');
-  } finally {
+    showToast('Error al enviar los perfiles');
     btn.disabled = false;
-    btn.textContent = '✓ Finalizar cata (enviar mensaje de cierre)';
+    btn.textContent = '🍷 Enviar perfiles y cerrar cata';
   }
 };
 

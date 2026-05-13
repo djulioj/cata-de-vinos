@@ -137,10 +137,12 @@ module.exports = async function handler(req, res) {
 
   const results = await Promise.allSettled(
     eligible.map(async (g) => {
-      await sendWhatsApp(
-        g.phone,
-        `🍷 *Vino ${wineNum}*\n\n¡Llegó el momento, ${g.name}! Pruébalo y descríbemelo con tus propias palabras. No hay respuesta incorrecta 😊`
-      );
+      // Si estaba describiendo otro vino y no respondió, lo reconocemos
+      const msg = g.state === 'describing'
+        ? `🍷 *Vino ${wineNum}*\n\nEl anfitrión ya pasó al siguiente, ${g.name}! No te preocupes por el anterior — cuéntame qué percibes en este. Sin presión 😊`
+        : `🍷 *Vino ${wineNum}*\n\n¡Llegó el momento, ${g.name}! Pruébalo y descríbemelo con tus propias palabras. No hay respuesta incorrecta 😊`;
+
+      await sendWhatsApp(g.phone, msg);
       const key = g.phone.replace(/\D/g, '');
       await fsSet(`guests/${key}`, { state: 'describing', currentWine: wineNum });
     })
