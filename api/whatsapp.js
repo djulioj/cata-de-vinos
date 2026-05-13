@@ -65,13 +65,17 @@ module.exports = async function handler(req, res) {
     );
   }
 
-  // ── 3. Registrado, esperando que el anfitrión active un vino ──────────────
+  // ── 3. Registrado o ya envió — cualquier mensaje fuera de flujo ──────────
   if (guest.state === 'registered' || guest.state === 'submitted') {
-    return res.end(
-      twiml(
-        `¡Hola, ${guest.name}! 🍷 El anfitrión activará el siguiente vino pronto. Te aviso aquí cuando sea el momento.`
-      )
-    );
+    const msg = msgText.toLowerCase();
+    const isPositive = ['gracias', 'rico', 'bueno', 'genial', 'ok', 'listo',
+      'perfecto', 'excelente', 'bien', 'chévere', 'súper', '👍', '🙌', '😊'].some(w => msg.includes(w));
+
+    const reply = isPositive
+      ? `¡Con gusto, ${guest.name}! 😊 Cuando el anfitrión active el siguiente vino te llega el aviso aquí. ¡Disfruta! 🍷`
+      : `¡Aquí estoy, ${guest.name}! 🍷 En cuanto el anfitrión active el siguiente vino, te aviso directo aquí. ¡No te muevas!`;
+
+    return res.end(twiml(reply));
   }
 
   // ── 4. Vino activo — esperando su descripción ────────────────────────────
