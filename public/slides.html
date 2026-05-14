@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QFD Solutions · Automatización</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0e0e12;
+      --gold:   #C9A84C;
+      --cream:  #F5F0E8;
+      --muted:  #888;
+      --wine:   #7B2035;
+      --card:   #16161c;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── SLIDES ── */
+    .deck { position: relative; width: 100%; height: 100%; }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 6vw 8vw;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .5s ease;
+      text-align: center;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── TYPOGRAPHY ── */
+    .eyebrow {
+      font-size: clamp(11px, 1.2vw, 14px);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      line-height: 1.1;
+      color: var(--cream);
+    }
+    h1 em { font-style: italic; color: var(--gold); }
+
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2rem, 4.5vw, 4rem);
+      line-height: 1.15;
+      color: var(--cream);
+    }
+    h2 em { font-style: italic; color: var(--gold); }
+
+    .big-q {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.2rem, 5vw, 4.5rem);
+      line-height: 1.2;
+      color: var(--cream);
+    }
+    .big-q em { color: var(--gold); font-style: italic; }
+
+    p.sub {
+      font-size: clamp(1rem, 1.6vw, 1.3rem);
+      font-weight: 300;
+      color: #aaa;
+      margin-top: 1.2rem;
+      max-width: 680px;
+      line-height: 1.7;
+    }
+
+    /* ── LIST SLIDES ── */
+    .list {
+      list-style: none;
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      max-width: 760px;
+      text-align: left;
+    }
+    .list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      font-size: clamp(1rem, 1.8vw, 1.35rem);
+      font-weight: 300;
+      line-height: 1.5;
+      color: var(--cream);
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .4s ease, transform .4s ease;
+    }
+    .list li.show { opacity: 1; transform: none; }
+    .list li .dot {
+      flex-shrink: 0;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: .55em;
+    }
+
+    /* ── TWO COLUMN ── */
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2.5rem;
+      width: 100%;
+      max-width: 900px;
+      text-align: left;
+    }
+    .col-card {
+      background: var(--card);
+      border: 1px solid #2a2a35;
+      border-radius: 12px;
+      padding: 1.5rem 1.75rem;
+    }
+    .col-card .col-title {
+      font-size: clamp(.75rem, 1vw, .85rem);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: .75rem;
+    }
+    .col-card ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+    .col-card ul li {
+      font-size: clamp(.85rem, 1.3vw, 1rem);
+      font-weight: 300;
+      color: #bbb;
+      line-height: 1.5;
+      padding-left: .9rem;
+      position: relative;
+    }
+    .col-card ul li::before {
+      content: '—';
+      position: absolute; left: 0;
+      color: var(--gold);
+      font-size: .7em;
+      top: .15em;
+    }
+
+    /* ── HIGHLIGHT NUMBER ── */
+    .big-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(4rem, 10vw, 8rem);
+      font-weight: 300;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    /* ── DIVIDER ── */
+    .rule {
+      width: 48px; height: 1px;
+      background: var(--gold);
+      margin: 1.5rem auto;
+      opacity: .6;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      bottom: 2rem; right: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      z-index: 99;
+    }
+    .nav button {
+      background: none;
+      border: 1px solid #333;
+      color: #666;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      transition: border-color .2s, color .2s;
+    }
+    .nav button:hover { border-color: var(--gold); color: var(--gold); }
+    .nav button:disabled { opacity: .2; cursor: default; }
+    #prog {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: .1em;
+      min-width: 36px;
+      text-align: center;
+    }
+
+    /* ── ACCENT LINE ── */
+    .accent-line {
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 1.5rem 0;
+    }
+
+    /* ── SLIDE-SPECIFIC ── */
+    #s1 { background: radial-gradient(ellipse at 60% 40%, #1a0e18 0%, var(--bg) 70%); }
+    #s1 h1 { font-size: clamp(3.5rem, 7vw, 6.5rem); }
+    #s1 .logo-sub {
+      font-size: clamp(.85rem, 1.2vw, 1rem);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: #555;
+      margin-top: 2rem;
+    }
+
+    #s9 { background: radial-gradient(ellipse at 40% 60%, #1a0e18 0%, var(--bg) 70%); }
+  </style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- 1: Portada -->
+  <div class="slide active" id="s1">
+    <div class="eyebrow">QFD Solutions</div>
+    <h1>Automatización<br><em>inteligente</em></h1>
+    <div class="rule"></div>
+    <p class="sub">Cómo las empresas que lideran los próximos años<br>están operando hoy.</p>
+  </div>
+
+  <!-- 2: La pregunta -->
+  <div class="slide" id="s2">
+    <div class="eyebrow">Para empezar</div>
+    <div class="big-q">
+      ¿Cuántas horas a la semana<br>trabaja su empresa<br><em>mientras usted no está?</em>
+    </div>
+  </div>
+
+  <!-- 3: Ya está pasando -->
+  <div class="slide" id="s3">
+    <div class="eyebrow">El mundo que ya existe</div>
+    <h2>Hoy hay empresas que<em>…</em></h2>
+    <ul class="list" id="list3">
+      <li><span class="dot"></span>Atienden clientes a las 3 de la madrugada</li>
+      <li><span class="dot"></span>Generan cotizaciones personalizadas en segundos</li>
+      <li><span class="dot"></span>Detectan problemas operativos antes de que alguien los reporte</li>
+      <li><span class="dot"></span>Cierran en minutos procesos que antes tomaban días</li>
+    </ul>
+    <p class="sub" style="margin-top:1.8rem;">Sin una persona del otro lado. Sin horario de oficina.</p>
+  </div>
+
+  <!-- 4: Arajet -->
+  <div class="slide" id="s4">
+    <div class="eyebrow">Caso real · Arajet</div>
+    <h2>Un reporte regulatorio<br>para <em>cada país.</em><br>Formato diferente.<br>Sin margen de error.</h2>
+    <div class="rule"></div>
+    <p class="sub">Antes: horas de trabajo manual por vuelo, por ruta, por mes.<br>
+    Hoy: el sistema lo genera solo, listo para entregar.</p>
+  </div>
+
+  <!-- 5: Lo que cambia -->
+  <div class="slide" id="s5">
+    <div class="eyebrow">El principio</div>
+    <h2>La automatización no<br>reemplaza personas.</h2>
+    <div class="accent-line"></div>
+    <h2>Las <em>libera</em><br>para hacer lo que<br>solo las personas pueden hacer.</h2>
+  </div>
+
+  <!-- 6: El espejo – sectores -->
+  <div class="slide" id="s6">
+    <div class="eyebrow">Su versión del problema</div>
+    <h2 style="margin-bottom:1.5rem;">Cada empresa tiene<br>su <em>reporte de Brasil.</em></h2>
+    <div class="cols">
+      <div class="col-card">
+        <div class="col-title">Logística & Puertos</div>
+        <ul>
+          <li>Manifiestos de carga</li>
+          <li>Coordinación con navieras</li>
+          <li>Reportes de cadena de suministro</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title">Zona Franca & Comercio</div>
+        <ul>
+          <li>Declaraciones de importación</li>
+          <li>Trazabilidad de mercancía</li>
+          <li>Cumplimiento tributario</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title">Alimentos & Industria</div>
+        <ul>
+          <li>Control de lote y trazabilidad</li>
+          <li>Reportes sanitarios</li>
+          <li>Inventarios en tiempo real</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="col-title">Financiero & Educación</div>
+        <ul>
+          <li>Informes regulatorios</li>
+          <li>Seguimiento a indicadores</li>
+          <li>Reportes periódicos automáticos</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7: El costo invisible -->
+  <div class="slide" id="s7">
+    <div class="eyebrow">El ejercicio</div>
+    <h2 style="margin-bottom:2rem;">Piensen en un proceso<br>que se repite en su empresa.</h2>
+    <ul class="list" id="list7" style="max-width:580px; margin:0 auto;">
+      <li><span class="dot"></span>¿Cuántas horas al mes consume?</li>
+      <li><span class="dot"></span>¿Cuánto cuesta esa persona por hora?</li>
+      <li><span class="dot"></span>Multiplíquenlo por <strong style="color:var(--gold)">12.</strong></li>
+    </ul>
+    <div class="rule" style="margin-top:2rem;"></div>
+    <p class="sub">Ese número es lo que ese proceso les cuesta al año.<br><em style="color:var(--gold)">Solo en tiempo.</em></p>
+  </div>
+
+  <!-- 8: La pregunta que se llevan -->
+  <div class="slide" id="s8">
+    <div class="eyebrow">La pregunta</div>
+    <div class="big-q">
+      ¿Qué haría su equipo<br>con <em>ese tiempo?</em>
+    </div>
+  </div>
+
+  <!-- 9: Cierre -->
+  <div class="slide" id="s9">
+    <div class="eyebrow">Para cerrar</div>
+    <h2 style="margin-bottom:1.5rem;">Hay dos tipos<br>de empresas.</h2>
+    <div class="cols" style="max-width:700px;">
+      <div class="col-card" style="border-color:#C9A84C44;">
+        <div class="col-title">Las que usan<br>estas herramientas</div>
+      </div>
+      <div class="col-card">
+        <div class="col-title">Las que compiten<br>contra las que las usan</div>
+      </div>
+    </div>
+    <div class="rule" style="margin-top:2.5rem;"></div>
+    <p class="sub">La pregunta no es si esto va a llegar a su industria.<br><em style="color:var(--gold)">Ya llegó.</em></p>
+  </div>
+
+</div><!-- /.deck -->
+
+<!-- NAV -->
+<div class="nav">
+  <button id="btnPrev" onclick="go(-1)" disabled>←</button>
+  <span id="prog">1 / 9</span>
+  <button id="btnNext" onclick="go(1)">→</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total  = slides.length;
+  let cur = 0;
+
+  // Listas animadas por slide
+  const animLists = {
+    2: 'list3',   // slide index 2 = s3
+    6: 'list7',   // slide index 6 = s7
+  };
+
+  function showSlide(n) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(n, total - 1));
+    slides[cur].classList.add('active');
+
+    document.getElementById('prog').textContent = `${cur + 1} / ${total}`;
+    document.getElementById('btnPrev').disabled = cur === 0;
+    document.getElementById('btnNext').disabled = cur === total - 1;
+
+    // Animar lista si la hay
+    const listId = animLists[cur];
+    if (listId) {
+      const items = document.querySelectorAll(`#${listId} li`);
+      items.forEach(li => li.classList.remove('show'));
+      items.forEach((li, i) =>
+        setTimeout(() => li.classList.add('show'), 200 + i * 180)
+      );
+    }
+  }
+
+  function go(dir) { showSlide(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowDown', ' '].includes(e.key)) { e.preventDefault(); go(1); }
+    if (['ArrowLeft',  'ArrowUp'       ].includes(e.key)) { e.preventDefault(); go(-1); }
+  });
+
+  // Click en cualquier parte avanza (excepto botones)
+  document.getElementById('deck').addEventListener('click', () => {
+    if (cur < total - 1) go(1);
+  });
+</script>
+
+</body>
+</html>
